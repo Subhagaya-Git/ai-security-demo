@@ -1,0 +1,36 @@
+﻿name: AI Code Security Gate
+
+on: [push, pull_request]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1. Semgrep (SAST)
+      - name: Run Semgrep
+        run: |
+          pip install semgrep
+          semgrep scan --config auto --json > semgrep-results.json
+
+      # 2. GitLeaks (Secrets)
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. OPA Policy Gate (The Final Decision)
+      - name: Evaluate Security Policy with OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+          chmod +x opa
+          RESULT=$(./opa eval --data policy.rego --input semgrep-results.json "data.security.allow" --format raw)
+          echo "OPA Decision: $RESULT"
+          if [ "$RESULT" != "true" ]; then
+            echo "❌ SECURITY GATE FAILED: Vulnerabilities found!"
+            exit 1
+          fi
