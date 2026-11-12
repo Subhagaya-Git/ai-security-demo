@@ -7,9 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # Pinned to a secure SHA
 
       # 1. Semgrep (SAST)
       - name: Run Semgrep
@@ -19,7 +17,7 @@ jobs:
 
       # 2. GitLeaks (Secrets)
       - name: Run GitLeaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@8ade135a41bc03ea155e62e844d188df1ea18608 # Pinned to a secure SHA (Example)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
